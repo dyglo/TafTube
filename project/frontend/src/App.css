@@ -1,0 +1,174 @@
+.App {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Fix header overlap issue */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Dark mode scrollbar - True Black Theme */
+.dark ::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #333333;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Video grid responsive improvements */
+@media (max-width: 640px) {
+  .grid-cols-1 {
+    gap: 1rem;
+  }
+}
+
+/* Hover effects */
+.group:hover .group-hover\:rounded-lg {
+  border-radius: 0.5rem;
+}
+
+/* TafTube-style button gradients */
+.bg-red-gradient {
+  background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+}
+
+.bg-red-gradient:hover {
+  background: linear-gradient(135deg, #e60000 0%, #b30000 100%);
+}
+
+/* Custom focus styles */
+.focus\:border-blue-500:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* TafTube red accent color */
+.text-taftube-red {
+  color: #ff0000;
+}
+
+.bg-taftube-red {
+  background-color: #ff0000;
+}
+
+.border-taftube-red {
+  border-color: #ff0000;
+}
+
+/* Enhanced video card hover effect */
+.video-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode video card hover */
+.dark .video-card:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .lg\:flex {
+    flex-direction: column;
+  }
+  
+  .lg\:w-96 {
+    width: 100%;
+    margin-top: 1.5rem;
+  }
+}
+
+/* Ambient mode background */
+.ambient-bg {
+  background: linear-gradient(45deg, rgba(255, 0, 0, 0.1) 0%, rgba(230, 0, 0, 0.05) 100%);
+}
+
+/* Search result video card adjustments */
+.search-result-card {
+  transition: background-color 0.2s ease;
+}
+
+.search-result-card:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark .search-result-card:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Shorts aspect ratio */
+.aspect-9\/16 {
+  aspect-ratio: 9 / 16;
+}
+
+/* Dark mode true black backgrounds */
+.dark {
+  background-color: #000000 !important;
+}
+
+/* Ensure proper spacing from header */
+main {
+  min-height: calc(100vh - 64px);
+}
