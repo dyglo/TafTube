@@ -4,7 +4,7 @@ ARG FRONTEND_ENV
 ENV FRONTEND_ENV=${FRONTEND_ENV}
 WORKDIR /app
 COPY frontend/ /app/
-RUN rm /app/.env
+RUN rm -f /app/.env
 RUN touch /app/.env
 RUN echo "${FRONTEND_ENV}" | tr ',' '\n' > /app/.env
 RUN cat /app/.env
