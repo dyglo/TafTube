@@ -14,7 +14,7 @@ RUN yarn install --frozen-lockfile && yarn build
 FROM python:3.11-slim as backend
 WORKDIR /app
 COPY backend/ /app/
-RUN rm /app/.env
+RUN rm -f /app/.env
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Stage 3: Final Image
