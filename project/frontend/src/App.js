@@ -8,7 +8,8 @@ import {
   VideoPlayer, 
   SearchResults,
   LoadingSpinner,
-  ShortsCard
+  ShortsCard,
+  TopicBar
 } from './components';
 
 const YOUTUBE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;
@@ -19,6 +20,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState('All');
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -33,6 +35,26 @@ function App() {
     }
   }, [darkMode]);
 
+  // Responsive sidebar state
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 640) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    // Listen for custom closeSidebar event
+    const closeSidebar = () => setSidebarOpen(false);
+    window.addEventListener('closeSidebar', closeSidebar);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('closeSidebar', closeSidebar);
+    };
+  }, []);
+
   return (
     <div className="App bg-white dark:bg-black min-h-screen">
       <BrowserRouter>
@@ -44,11 +66,12 @@ function App() {
           darkMode={darkMode}
           toggleDarkMode={toggleDarkMode}
         />
+        <TopicBar selected={selectedTopic} onSelect={setSelectedTopic} />
         <div className="flex">
           <Sidebar sidebarOpen={sidebarOpen} />
-          <main className={`flex-1 transition-all duration-300 pt-16 ${sidebarOpen ? 'ml-60' : 'ml-16'}`}>
+          <main className={`flex-1 transition-all duration-300 pt-16 ${window.innerWidth > 640 ? (sidebarOpen ? 'ml-60' : 'ml-16') : ''}`}>
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<HomePage selectedTopic={selectedTopic} />} />
               <Route path="/shorts" element={<ShortsPage />} />
               <Route path="/watch" element={<WatchPage />} />
               <Route path="/results" element={<SearchPage searchQuery={searchQuery} />} />
@@ -98,7 +121,9 @@ const ShortsPage = () => {
     </div>
   );
 };
-const HomePage = () => {
+
+// HomePage component: add topic filtering
+const HomePage = ({ selectedTopic }) => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -121,11 +146,24 @@ const HomePage = () => {
     }
   };
 
+  // Filter videos by topic
+  const filteredVideos = selectedTopic === 'All'
+    ? videos
+    : videos.filter(video => {
+        const t = selectedTopic.toLowerCase();
+        const { title = '', description = '', channelTitle = '' } = video.snippet || {};
+        return (
+          title.toLowerCase().includes(t) ||
+          description.toLowerCase().includes(t) ||
+          channelTitle.toLowerCase().includes(t)
+        );
+      });
+
   if (loading) return <LoadingSpinner />;
 
   return (
     <div className="p-6">
-      <VideoGrid videos={videos} />
+      <VideoGrid videos={filteredVideos} />
     </div>
   );
 };

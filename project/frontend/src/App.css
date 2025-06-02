@@ -172,3 +172,61 @@ body {
 main {
   min-height: calc(100vh - 64px);
 }
+
+/* --- MOBILE ENHANCEMENTS START --- */
+@media (max-width: 640px) {
+  .App main {
+    margin-left: 0 !important;
+  }
+  header {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .sidebar-mobile-hidden {
+    display: none !important;
+  }
+  .sidebar-mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 40;
+  }
+  .sidebar-mobile {
+    width: 14rem !important;
+    min-width: 0 !important;
+    max-width: 90vw;
+    left: 0;
+    top: 4rem;
+    height: calc(100vh - 4rem);
+    border-radius: 0 1rem 1rem 0;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  }
+  .video-card img, .shorts-card img {
+    border-radius: 0.75rem;
+  }
+  .video-card, .shorts-card {
+    padding: 0.5rem;
+  }
+  .grid {
+    gap: 0.75rem !important;
+  }
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  .text-lg {
+    font-size: 1rem !important;
+  }
+  .text-base, .text-sm {
+    font-size: 0.9rem !important;
+  }
+}
+/* --- MOBILE ENHANCEMENTS END --- */
+
+/* Hide horizontal scrollbar utility */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
 // TafTube Logo SVG Component
 const TafTubeLogo = () => (
@@ -218,11 +218,25 @@ const UserDropdown = ({ darkMode, toggleDarkMode, isOpen, setIsOpen }) => {
   );
 };
 
+// Utility hook for media query
+function useMediaQuery(query) {
+  const [matches, setMatches] = React.useState(window.matchMedia(query).matches);
+  React.useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) setMatches(media.matches);
+    const listener = () => setMatches(media.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [matches, query]);
+  return matches;
+}
+
 // Header Component
 export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuery, darkMode, toggleDarkMode }) => {
   const navigate = useNavigate();
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 640px)');
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -233,12 +247,13 @@ export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuer
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className={`flex items-center justify-between px-2 sm:px-4 py-2 ${isMobile ? 'gap-2' : ''}`}>
         {/* Left section - Menu and Logo */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <button
+            aria-label="Open sidebar menu"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors sm:block"
           >
             <MenuIcon />
           </button>
@@ -247,38 +262,55 @@ export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuer
           </Link>
         </div>
 
-        {/* Center section - Search */}
-        <div className="flex-1 max-w-2xl mx-8">
-          <div className="flex items-center">
-            <form onSubmit={handleSearch} className="flex flex-1">
-              <div className="flex flex-1">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={localSearchQuery}
-                  onChange={(e) => setLocalSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-l-full focus:outline-none focus:border-blue-500 dark:bg-gray-900 dark:text-white"
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-gray-50 dark:bg-gray-800 border border-l-0 border-gray-300 dark:border-gray-700 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <SearchIcon />
-                </button>
-              </div>
-            </form>
-            <button className="ml-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
-              <MicIcon />
+        {/* Center section - Search (collapses on mobile) */}
+        {!isMobile && (
+          <div className="flex-1 max-w-2xl mx-8">
+            <div className="flex items-center">
+              <form onSubmit={handleSearch} className="flex flex-1">
+                <div className="flex flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    value={localSearchQuery}
+                    onChange={(e) => setLocalSearchQuery(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-l-full focus:outline-none focus:border-blue-500 dark:bg-gray-900 dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-gray-50 dark:bg-gray-800 border border-l-0 border-gray-300 dark:border-gray-700 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <SearchIcon />
+                  </button>
+                </div>
+              </form>
+              <button className="ml-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
+                <MicIcon />
+              </button>
+            </div>
+          </div>
+        )}
+        {isMobile && (
+          <div className="flex-1 flex justify-end">
+            <button
+              aria-label="Search"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+              onClick={() => {
+                // Optionally open a modal for search on mobile
+                // For now, just focus input or show alert
+                alert('Implement mobile search modal!');
+              }}
+            >
+              <SearchIcon />
             </button>
           </div>
-        </div>
+        )}
 
         {/* Right section - Create, Notifications, User menu */}
-        <div className="flex items-center space-x-2">
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
+        <div className="flex items-center space-x-1 sm:space-x-2">
+          <button aria-label="Create" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
             <CreateIcon />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors relative">
+          <button aria-label="Notifications" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors relative">
             <NotificationIcon />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full text-xs text-white flex items-center justify-center">
               3
@@ -286,6 +318,7 @@ export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuer
           </button>
           <div className="relative">
             <button
+              aria-label="User menu"
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-semibold hover:bg-red-700 transition-colors"
             >
@@ -307,11 +340,15 @@ export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuer
 // Sidebar Component
 export const Sidebar = ({ sidebarOpen }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
 
+  // Sidebar section arrays (restored)
   const mainItems = [
     { icon: <HomeIcon />, label: 'Home', path: '/' },
     { icon: <ShortsIcon />, label: 'Shorts', path: '/shorts' },
     { icon: <SubscriptionsIcon />, label: 'Subscriptions', path: '/subscriptions' },
+    { icon: <PlaylistIcon />, label: 'Library', path: '/playlists' },
   ];
 
   const youItems = [
@@ -320,10 +357,6 @@ export const Sidebar = ({ sidebarOpen }) => {
     { icon: <VideoIcon />, label: 'Your videos', path: '/your-videos' },
     { icon: <WatchLaterIcon />, label: 'Watch later', path: '/watch-later' },
     { icon: <LikeIcon />, label: 'Liked videos', path: '/liked-videos' },
-  ];
-
-  const exploreItems = [
-    { icon: <TrendingIcon />, label: 'Trending', path: '/trending' },
   ];
 
   // Mock subscriptions data
@@ -335,90 +368,176 @@ export const Sidebar = ({ sidebarOpen }) => {
     { name: 'Linus Tech Tips', avatar: 'LT', verified: true },
   ];
 
-  return (
-    <aside className={`fixed left-0 top-16 h-full bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-40 overflow-y-auto ${
-      sidebarOpen ? 'w-60' : 'w-16'
-    }`}>
-      <nav className="p-2">
-        {/* Main Items */}
-        {mainItems.map((item, index) => (
-          <button
-            key={index}
-            onClick={() => navigate(item.path)}
-            className={`w-full flex items-center space-x-6 px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors ${
-              sidebarOpen ? 'justify-start' : 'justify-center'
-            }`}
-          >
-            <span className="text-gray-600 dark:text-gray-300">{item.icon}</span>
-            {sidebarOpen && (
-              <span className="text-sm font-medium text-gray-900 dark:text-white">{item.label}</span>
-            )}
-          </button>
-        ))}
+  // Helper for active state
+  const isActive = (path) => location.pathname === path;
 
-        {sidebarOpen && (
-          <>
-            {/* Divider */}
-            <div className="border-t border-gray-200 dark:border-gray-800 my-3"></div>
+  // Helper for tooltips
+  const Tooltip = ({ children, label }) => (
+    <div className="group relative flex items-center justify-center">
+      {children}
+      <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-gray-900 text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none z-50 transition-opacity duration-200">
+        {label}
+      </span>
+    </div>
+  );
 
-            {/* You Section */}
-            <div className="mb-4">
-              <h3 className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white">You</h3>
-              {youItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => navigate(item.path)}
-                  className="w-full flex items-center space-x-6 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
-                >
-                  <span className="text-gray-600 dark:text-gray-300">{item.icon}</span>
-                  <span className="text-sm text-gray-900 dark:text-white">{item.label}</span>
-                </button>
-              ))}
-            </div>
+  // Hide sidebar on /watch route (desktop and mobile)
+  if (location.pathname.startsWith('/watch')) {
+    return null;
+  }
 
-            {/* Divider */}
-            <div className="border-t border-gray-200 dark:border-gray-800 my-3"></div>
-
-            {/* Explore Section */}
-            <div className="mb-4">
-              <h3 className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white">Explore</h3>
-              {exploreItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => navigate(item.path)}
-                  className="w-full flex items-center space-x-6 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
-                >
-                  <span className="text-gray-600 dark:text-gray-300">{item.icon}</span>
-                  <span className="text-sm text-gray-900 dark:text-white">{item.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-gray-200 dark:border-gray-800 my-3"></div>
-
-            {/* Subscriptions Section */}
-            <div className="mb-4">
-              <h3 className="px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white">Subscriptions</h3>
-              {subscriptions.map((sub, index) => (
-                <button
-                  key={index}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
-                >
-                  <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
-                    {sub.avatar}
-                  </div>
-                  <span className="text-sm text-gray-900 dark:text-white truncate">{sub.name}</span>
-                  {sub.verified && (
-                    <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          </>
+  // Hide sidebar on mobile unless open
+  if (isMobile) {
+    return (
+      <>
+        {/* Overlay for mobile */}
+        {isMobile && sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40 z-40 sm:hidden"
+            onClick={e => {
+              e.stopPropagation();
+              if (typeof window !== 'undefined') {
+                const evt = new CustomEvent('closeSidebar');
+                window.dispatchEvent(evt);
+              }
+            }}
+          />
         )}
+        <aside
+          className={`fixed left-0 top-16 h-full bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-50 overflow-y-auto
+            ${sidebarOpen ? 'w-20' : 'w-0'}
+            ${!sidebarOpen ? 'pointer-events-none' : ''}
+          `}
+          style={!sidebarOpen ? { visibility: 'hidden' } : {}}
+          aria-label="Sidebar navigation"
+        >
+          <nav className="p-2 flex flex-col items-center space-y-2">
+            {mainItems.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => navigate(item.path)}
+                className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors text-gray-600 dark:text-gray-300`}
+                aria-label={item.label}
+              >
+                {item.icon}
+              </button>
+            ))}
+          </nav>
+        </aside>
+        {/* Bottom Navigation Bar for Mobile (not on /watch) */}
+        {!location.pathname.startsWith('/watch') && (
+          <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800 flex justify-around py-1 sm:hidden">
+            {mainItems.map((item, idx) => (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                className="flex flex-col items-center justify-center w-12 h-12 text-gray-600 dark:text-gray-300 hover:text-red-600"
+                aria-label={item.label}
+              >
+                {item.icon}
+                <span className="text-[10px] mt-0.5">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        )}
+      </>
+    );
+  }
+
+  // Desktop sidebar
+  if (!sidebarOpen) {
+    // Closed: Only show main section icons, centered, with tooltips
+    return (
+      <aside
+        className={`sticky top-16 h-[calc(100vh-4rem)] bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-40 overflow-y-auto w-16`}
+        aria-label="Sidebar navigation"
+      >
+        <nav className="flex flex-col items-center mt-2">
+          {mainItems.map((item, index) => (
+            <button
+              key={index}
+              onClick={() => navigate(item.path)}
+              className={`group flex flex-col items-center justify-center w-12 h-12 rounded-lg mb-1 transition-colors
+                ${isActive(item.path) ? 'bg-gray-100 dark:bg-gray-800 font-bold text-red-600' : 'hover:bg-gray-100 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200'}`}
+              aria-label={item.label}
+            >
+              <Tooltip label={item.label}>
+                <span className="text-xl">{item.icon}</span>
+              </Tooltip>
+            </button>
+          ))}
+        </nav>
+      </aside>
+    );
+  }
+
+  // Desktop sidebar open: show all sections
+  return (
+    <aside
+      className={`sticky top-16 h-[calc(100vh-4rem)] bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-40 overflow-y-auto w-60`}
+      aria-label="Sidebar navigation"
+    >
+      <nav className="flex flex-col h-full">
+        {/* Main Section */}
+        <div className="mt-2">
+          {mainItems.map((item, index) => (
+            <button
+              key={index}
+              onClick={() => navigate(item.path)}
+              className={`group flex items-center w-full px-3 py-3 rounded-lg mb-1 transition-colors
+                ${isActive(item.path) ? 'bg-gray-100 dark:bg-gray-800 font-bold text-red-600' : 'hover:bg-gray-100 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200'}
+                justify-start space-x-6`}
+              aria-label={item.label}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <span className="text-sm">{item.label}</span>
+            </button>
+          ))}
+        </div>
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-gray-800 my-2 mx-3" />
+        {/* You Section */}
+        <div>
+          <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">You</div>
+          {youItems.map((item, index) => (
+            <button
+              key={index}
+              onClick={() => navigate(item.path)}
+              className={`group flex items-center w-full px-3 py-2 rounded-lg mb-1 transition-colors
+                ${isActive(item.path) ? 'bg-gray-100 dark:bg-gray-800 font-bold text-red-600' : 'hover:bg-gray-100 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200'}
+                justify-start space-x-6`}
+              aria-label={item.label}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <span className="text-sm">{item.label}</span>
+            </button>
+          ))}
+        </div>
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-gray-800 my-2 mx-3" />
+        {/* Subscriptions Section */}
+        <div className="flex-1">
+          <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">Subscriptions</div>
+          {subscriptions.map((sub, index) => (
+            <button
+              key={index}
+              className={`group flex items-center w-full px-3 py-2 rounded-lg mb-1 transition-colors
+                hover:bg-gray-100 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200
+                justify-start space-x-3`}
+              aria-label={sub.name}
+            >
+              <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                {sub.avatar}
+              </div>
+              <span className="text-sm truncate">{sub.name}</span>
+              {sub.verified && (
+                <svg className="w-3 h-3 text-gray-400 flex-shrink-0 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
       </nav>
     </aside>
   );
@@ -679,3 +798,46 @@ export const LoadingSpinner = () => (
 
 // Export ShortsCard for use in App.js
 export { ShortsCard };
+
+// --- Topic Suggestions Bar ---
+const topics = [
+  'All',
+  'Music',
+  'Science fiction',
+  'News',
+  'Gaming',
+  'Live',
+  'AI',
+  'Sports',
+  'Programming',
+  'Podcasts',
+  'Movies',
+  'Learning',
+  'Fashion',
+  'Travel',
+  'Comedy',
+  'Recently uploaded',
+  'Watched',
+  'New to you',
+];
+
+export const TopicBar = ({ selected, onSelect }) => (
+  <nav className="sticky top-14 z-40 bg-white dark:bg-black border-b border-gray-100 dark:border-gray-800 overflow-x-auto w-full">
+    <div className="flex space-x-2 px-2 py-2 overflow-x-auto hide-scrollbar">
+      {topics.map((topic) => (
+        <button
+          key={topic}
+          onClick={() => onSelect && onSelect(topic)}
+          className={`whitespace-nowrap px-4 py-1 rounded-full text-sm font-medium border transition-colors
+            ${selected === topic
+              ? 'bg-gray-900 text-white dark:bg-white dark:text-black border-gray-900 dark:border-white'
+              : 'bg-gray-100 text-gray-800 dark:bg-white/20 dark:text-white border-gray-200 dark:border-transparent hover:bg-gray-200 dark:hover:bg-white/30'}
+          `}
+          style={{ minWidth: 'fit-content' }}
+        >
+          {topic}
+        </button>
+      ))}
+    </div>
+  </nav>
+);
