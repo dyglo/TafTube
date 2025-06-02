@@ -9,7 +9,8 @@ import {
   SearchResults,
   LoadingSpinner,
   ShortsCard,
-  TopicBar
+  TopicBar,
+  HistoryPage
 } from './components';
 
 const YOUTUBE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;
@@ -75,6 +76,7 @@ function App() {
               <Route path="/shorts" element={<ShortsPage />} />
               <Route path="/watch" element={<WatchPage />} />
               <Route path="/results" element={<SearchPage searchQuery={searchQuery} />} />
+              <Route path="/history" element={<HistoryPage />} />
             </Routes>
           </main>
         </div>

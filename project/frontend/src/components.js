@@ -236,12 +236,14 @@ export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuer
   const navigate = useNavigate();
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 640px)');
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (localSearchQuery.trim()) {
       navigate(`/results?search_query=${encodeURIComponent(localSearchQuery.trim())}`);
+      setMobileSearchOpen(false); // close overlay on mobile
     }
   };
 
@@ -294,11 +296,7 @@ export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuer
             <button
               aria-label="Search"
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
-              onClick={() => {
-                // Optionally open a modal for search on mobile
-                // For now, just focus input or show alert
-                alert('Implement mobile search modal!');
-              }}
+              onClick={() => setMobileSearchOpen(true)}
             >
               <SearchIcon />
             </button>
@@ -333,6 +331,40 @@ export const Header = ({ sidebarOpen, setSidebarOpen, searchQuery, setSearchQuer
           </div>
         </div>
       </div>
+      {/* Mobile Search Overlay */}
+      {isMobile && mobileSearchOpen && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-start justify-center">
+          <form
+            onSubmit={handleSearch}
+            className="w-full max-w-md mx-auto mt-8 flex bg-white dark:bg-gray-900 rounded-full shadow-lg overflow-hidden animate-fadeIn"
+            style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.15)' }}
+          >
+            <input
+              autoFocus
+              type="text"
+              placeholder="Search"
+              value={localSearchQuery}
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
+              className="flex-1 px-4 py-3 text-lg border-0 focus:outline-none bg-transparent dark:text-white"
+            />
+            <button
+              type="submit"
+              className="px-4 py-3 text-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-white"
+              aria-label="Submit search"
+            >
+              <SearchIcon />
+            </button>
+            <button
+              type="button"
+              className="px-4 py-3 text-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-white"
+              aria-label="Cancel search"
+              onClick={() => setMobileSearchOpen(false)}
+            >
+              ✕
+            </button>
+          </form>
+        </div>
+      )}
     </header>
   );
 };
@@ -553,6 +585,7 @@ const ShortsCard = ({ video }) => {
   const channelTitle = video.snippet?.channelTitle;
 
   const handleClick = () => {
+    saveVideoToHistory(video);
     navigate(`/watch?v=${videoId}`);
   };
 
@@ -616,6 +649,7 @@ const VideoCard = ({ video, isSearchResult = false }) => {
   };
 
   const handleClick = () => {
+    saveVideoToHistory(video);
     navigate(`/watch?v=${videoId}`);
   };
 
@@ -841,3 +875,89 @@ export const TopicBar = ({ selected, onSelect }) => (
     </div>
   </nav>
 );
+
+// Utility: Save video to history in localStorage
+function saveVideoToHistory(video) {
+  if (!video || !video.id) return;
+  const historyKey = 'taftube_history';
+  let history = [];
+  try {
+    history = JSON.parse(localStorage.getItem(historyKey)) || [];
+  } catch (e) {}
+  // Remove if already exists
+  history = history.filter(v => v.id !== video.id && v.id?.videoId !== video.id?.videoId);
+  // Add to front
+  history.unshift({
+    id: video.id?.videoId || video.id,
+    title: video.snippet?.title,
+    thumbnail: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url,
+    channelTitle: video.snippet?.channelTitle,
+    publishedAt: video.snippet?.publishedAt,
+  });
+  // Limit to 100
+  if (history.length > 100) history = history.slice(0, 100);
+  localStorage.setItem(historyKey, JSON.stringify(history));
+}
+
+// --- History Page ---
+export const HistoryPage = () => {
+  const [history, setHistory] = React.useState([]);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    try {
+      const h = JSON.parse(localStorage.getItem('taftube_history')) || [];
+      setHistory(h);
+    } catch (e) {
+      setHistory([]);
+    }
+  }, []);
+
+  const handleClear = () => {
+    localStorage.removeItem('taftube_history');
+    setHistory([]);
+  };
+
+  if (!history.length) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">History</h1>
+        <p className="text-gray-600 dark:text-gray-300">No videos watched yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">History</h1>
+        <button
+          onClick={handleClear}
+          className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-red-500 hover:text-white dark:hover:bg-red-600"
+        >
+          Clear History
+        </button>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {history.map((video, idx) => (
+          <div
+            key={video.id || idx}
+            className="cursor-pointer group bg-white dark:bg-gray-900 rounded-xl shadow hover:shadow-lg transition p-2"
+            onClick={() => navigate(`/watch?v=${video.id}`)}
+          >
+            <img
+              src={video.thumbnail}
+              alt={video.title}
+              className="w-full aspect-video object-cover rounded-lg mb-2"
+            />
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-5">{video.title}</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{video.channelTitle}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500">{video.publishedAt ? new Date(video.publishedAt).toLocaleDateString() : ''}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

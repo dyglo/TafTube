@@ -1,0 +1,3 @@
+# Ignore environment variable files
+project/backend/.env
+project/frontend/.env
